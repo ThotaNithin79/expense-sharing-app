@@ -1,0 +1,47 @@
+# ==================================
+# General
+# ==================================
+.idea/
+.vscode/
+*.iml
+*~
+.DS_Store
+
+# ==================================
+# Java / Maven (for Backend)
+# ==================================
+target/
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.settings/
+.project
+.classpath
+hs_err_pid*
+replay_pid*
+
+# ==================================
+# Node / React (for Frontend)
+# ==================================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# ==================================
+# Local Uploads (IMPORTANT)
+# ==================================
+backend/expense-sharing-backend/uploads/
+
+# Ignore the backend properties file that contains secrets
+backend/expense-sharing-backend/src/main/resources/application.properties
