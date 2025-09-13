@@ -10,6 +10,7 @@ import com.roomshare.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +31,9 @@ import com.roomshare.dto.ResetPasswordRequest;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    @Value("${frontend.url}") // Inject the value from the properties file
+    private String frontendUrl;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -134,9 +138,7 @@ public class AuthService {
         userRepository.save(user);
 
         // 5. Create the password reset link.
-        // NOTE: In a real frontend application, this URL would point to your React app's reset password page.
-        // For our backend-only testing, this is just a placeholder.
-        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
 
         // 6. Send the email to the user.
         String emailBody = "Hello " + user.getName() + ",\n\n" +
