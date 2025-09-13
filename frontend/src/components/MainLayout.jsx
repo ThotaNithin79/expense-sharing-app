@@ -1,58 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
-import Header from './Header'; // This import is now used
+import Header from './Header';
+import PendingMember from './PendingMember'; // We'll render this directly
+import DashboardLoader from './DashboardLoader'; // Use the loader here
 
 const MainLayout = () => {
-    // State to manage the sidebar's open/closed status on mobile
+    // Get the global state from our AuthContext
+    const { activeGroup, isLoading: isAuthLoading } = useAuth();
+    
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const location = useLocation(); // Hook to detect route changes
+    const location = useLocation();
 
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    // This useEffect hook closes the mobile sidebar automatically whenever the user navigates to a new page.
     useEffect(() => {
         if (isSidebarOpen) {
             setIsSidebarOpen(false);
         }
-    }, [location.pathname]); // Dependency: runs every time the URL path changes
+    }, [location.pathname]);
 
+    // --- RENDER LOGIC ---
+    
+    // 1. Show a full-page loader while the context is fetching the user's state
+    if (isAuthLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center">
+                <DashboardLoader />
+            </div>
+        );
+    }
+    
+    // 2. If the user has no group, show the PendingMember component as the main content
+    if (!activeGroup) {
+        return <PendingMember />;
+    }
+
+    // 3. If the user HAS a group, render the full application layout
     return (
         <div className="flex h-screen bg-slate-950 text-white">
-            {/* --- DESKTOP SIDEBAR --- */}
-            {/* Tailwind classes 'hidden md:flex' mean: hidden on small screens, flex (visible) on medium screens and up. */}
+            {/* Desktop Sidebar */}
             <div className="hidden md:flex">
-                {/* On desktop, the sidebar is never collapsed. */}
-                <Sidebar isCollapsed={false} /> 
+                <Sidebar />
             </div>
 
-            {/* --- MOBILE SIDEBAR (As an overlay) --- */}
-            {/* This div is only rendered on mobile (md:hidden). It slides in and out based on state. */}
-            <div 
-                className={`
-                    fixed inset-0 z-40 transition-transform duration-300 ease-in-out md:hidden
-                    ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                `}
-            >
-                {/* On mobile, the sidebar is never collapsed when it's open. */}
-                <Sidebar isCollapsed={false} />
+            {/* Mobile Sidebar (Overlay) */}
+            <div className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out md:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <Sidebar />
             </div>
             
-            {/* Backdrop overlay for when the mobile sidebar is open. Clicking it closes the sidebar. */}
-            {isSidebarOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/60 z-30 md:hidden"
-                    onClick={toggleSidebar}
-                ></div>
-            )}
+            {/* Backdrop */}
+            {isSidebarOpen && (<div className="fixed inset-0 bg-black/60 z-30 md:hidden" onClick={toggleSidebar}></div>)}
             
-            {/* --- MAIN CONTENT AREA --- */}
+            {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* The Header is only visible on mobile (md:hidden) and receives the toggle function */}
                 <Header onMenuClick={toggleSidebar} />
-                <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+                <main className="flex-1 overflow-y-auto">
+                    {/* The Outlet will now render DashboardPage, GroupManagementPage, etc. */}
                     <Outlet />
                 </main>
             </div>
