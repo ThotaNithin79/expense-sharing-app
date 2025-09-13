@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create a new Axios instance with a custom configuration
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api', // Your backend's base URL
+  baseURL: 'https://expense-sharing-app-ppry.onrender.com/api', // Your backend's base URL
   headers: {
     'Content-Type': 'application/json',
   },
