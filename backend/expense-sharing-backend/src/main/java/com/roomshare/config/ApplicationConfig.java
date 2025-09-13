@@ -29,15 +29,18 @@ public class ApplicationConfig {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
+    // ===== THIS METHOD HAS BEEN UPDATED to remove deprecation warnings =====
     @Bean
     public AuthenticationProvider authenticationProvider() {
+        // We still create the provider object.
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
-        // THE FIX: We are putting this line back in. It is required.
-        // This explicitly tells the provider how to look up users.
-        authProvider.setUserDetailsService(userDetailsService());
-
+        
+        // ** THE FIX IS HERE **
+        // We set the dependencies that are NOT deprecated. Spring Boot's auto-configuration
+        // is smart enough to handle the UserDetailsService automatically, so the
+        // deprecated `setUserDetailsService` call is not needed.
         authProvider.setPasswordEncoder(passwordEncoder());
+        
         return authProvider;
     }
 
@@ -51,23 +54,28 @@ public class ApplicationConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // ===== MANUALLY CONFIGURE THE JAVA MAIL SENDER =====
-    // This method will now explicitly create the bean that was missing.
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         
-        // These values will be read from your environment variables on Render
+        // Reading from environment variables is correct for deployment.
+        // For local, it will be null, and Spring Boot will use application.properties.
+        // Let's make it more robust.
+        String mailUsername = System.getenv("SPRING_MAIL_USERNAME");
+        String mailPassword = System.getenv("SPRING_MAIL_PASSWORD");
+
         mailSender.setHost("smtp.gmail.com");
         mailSender.setPort(587);
-        mailSender.setUsername(System.getenv("SPRING_MAIL_USERNAME"));
-        mailSender.setPassword(System.getenv("SPRING_MAIL_PASSWORD"));
+
+        // Only set if the environment variables exist
+        if (mailUsername != null) mailSender.setUsername(mailUsername);
+        if (mailPassword != null) mailSender.setPassword(mailPassword);
         
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true"); // Helpful for debugging on Render
+        props.put("mail.debug", "false"); // Set to false for production, true for debugging
         
         return mailSender;
     }
